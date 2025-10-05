@@ -33,7 +33,11 @@ const signInSchema = z.object({
 
 type SignInForm = z.infer<typeof signInSchema>;
 
-export function SignInTab() {
+export function SignInTab({
+  openEmailVerificationTab,
+}: {
+  openEmailVerificationTab: (email: string) => void;
+}) {
   const [isHidden, setIsHidden] = useState(true);
   const router = useRouter();
   const form = useForm<SignInForm>({
@@ -56,6 +60,9 @@ export function SignInTab() {
       {
         onError: (error) => {
           toast.error(error.error.message || "Failed to sign in");
+          if (error.error.code === "EMAIL_NOT_VERIFIED") {
+            openEmailVerificationTab(email);
+          }
         },
         onSuccess: () => {
           toast.success("You have signed In successfully!");

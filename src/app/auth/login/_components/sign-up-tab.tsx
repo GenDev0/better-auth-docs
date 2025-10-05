@@ -34,7 +34,11 @@ const signUpSchema = z.object({
 
 type SignUpForm = z.infer<typeof signUpSchema>;
 
-export function SignUpTab() {
+export function SignUpTab({
+  openEmailVerificationTab,
+}: {
+  openEmailVerificationTab: (email: string) => void;
+}) {
   const [isHidden, setIsHidden] = useState(true);
   const router = useRouter();
   const form = useForm<SignUpForm>({
@@ -49,7 +53,7 @@ export function SignUpTab() {
   const { isSubmitting } = form.formState;
 
   const handleSignUp = async ({ email, name, password }: SignUpForm) => {
-    authClient.signUp.email(
+    const res = await authClient.signUp.email(
       {
         email,
         name,
@@ -60,12 +64,11 @@ export function SignUpTab() {
         onError: (error) => {
           toast.error(error.error.message || "Failed to sign up");
         },
-        onSuccess: () => {
-          toast.success("You have been successfully registered!");
-          router.push("/");
-        },
       }
     );
+    if (res.error == null && !res.data.user.emailVerified) {
+      openEmailVerificationTab(email);
+    }
   };
 
   return (

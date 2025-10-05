@@ -52,7 +52,6 @@ const emailSettings = {
 export async function POST(request: Request) {
   const clonedRequest = request.clone();
   const decision = await checkArcjet(request);
-  console.log("Arcjet decision", decision);
 
   if (decision.isDenied()) {
     if (decision.reason.isRateLimit()) {
