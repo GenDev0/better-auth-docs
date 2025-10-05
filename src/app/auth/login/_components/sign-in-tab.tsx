@@ -25,6 +25,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { LoadingSwap } from "@/components/ui/loading-swap";
 
 const signInSchema = z.object({
   email: z.email().min(1),
@@ -35,8 +36,10 @@ type SignInForm = z.infer<typeof signInSchema>;
 
 export function SignInTab({
   openEmailVerificationTab,
+  openForgotPasswordTab,
 }: {
   openEmailVerificationTab: (email: string) => void;
+  openForgotPasswordTab: () => void;
 }) {
   const [isHidden, setIsHidden] = useState(true);
   const router = useRouter();
@@ -95,33 +98,47 @@ export function SignInTab({
             <FormItem>
               <FormLabel>Password</FormLabel>
               {/* <Input type="password" {...field} /> */}
-              <InputGroup>
-                <InputGroupInput
-                  type={isHidden ? "password" : "text"}
-                  {...field}
-                />
-                <InputGroupAddon align="inline-end">
-                  <FormControl>
-                    <InputGroupButton
-                      aria-label="Copy"
-                      title="Copy"
-                      size="icon-xs"
-                      onClick={() => {
-                        setIsHidden((prevState) => !prevState);
-                      }}
-                    >
-                      {isHidden ? <EyeClosed /> : <Eye />}
-                    </InputGroupButton>
-                  </FormControl>
-                </InputGroupAddon>
-              </InputGroup>
+              <div className="flex flex-col justify-center items-center w-full gap-2">
+                <div className="flex justify-center items-center w-full">
+                  <InputGroup>
+                    <InputGroupInput
+                      type={isHidden ? "password" : "text"}
+                      {...field}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <FormControl>
+                        <InputGroupButton
+                          aria-label="Copy"
+                          title="Copy"
+                          size="icon-xs"
+                          onClick={() => {
+                            setIsHidden((prevState) => !prevState);
+                          }}
+                        >
+                          {isHidden ? <EyeClosed /> : <Eye />}
+                        </InputGroupButton>
+                      </FormControl>
+                    </InputGroupAddon>
+                  </InputGroup>
+                </div>
+                <div className="flex justify-end items-center w-full">
+                  <Button
+                    onClick={openForgotPasswordTab}
+                    type="button"
+                    variant={"link"}
+                    size={"sm"}
+                    className="text-sm font-normal underline hover:cursor-pointer"
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting && <Spinner />}
-          Sign In
+          <LoadingSwap isLoading={isSubmitting}>Send Email</LoadingSwap>
         </Button>
       </form>
     </Form>

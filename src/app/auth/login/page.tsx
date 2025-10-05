@@ -16,8 +16,13 @@ import { SocialAuthButtons } from "./_components/social-auth-buttons";
 import { authClient } from "@/lib/auth/auth-client";
 import { useRouter } from "next/navigation";
 import { EmailVerification } from "./_components/email-verification";
+import { ForgotPassword } from "./_components/forgot-password";
 
-export type Tab = "signin" | "signup" | "email-verification";
+export type Tab =
+  | "signin"
+  | "signup"
+  | "email-verification"
+  | "forgot-password";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -58,7 +63,10 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             {/* Sign in Form */}
-            <SignInTab openEmailVerificationTab={openEmailVerificationTab} />
+            <SignInTab
+              openEmailVerificationTab={openEmailVerificationTab}
+              openForgotPasswordTab={() => setSelectedTab("forgot-password")}
+            />
           </CardContent>
           <Separator />
           <CardFooter className="grid grid-cols-2 gap-2">
@@ -84,6 +92,16 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <EmailVerification email={email} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="forgot-password">
+        <Card>
+          <CardHeader className="text-2xl font-bold">
+            <CardTitle className="">Forgot Password</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ForgotPassword openSignInTab={() => setSelectedTab("signin")} />
           </CardContent>
         </Card>
       </TabsContent>
