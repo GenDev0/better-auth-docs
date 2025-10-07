@@ -24,11 +24,13 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
+import { NumberInput } from "@/components/ui/number-input";
 
 const signUpSchema = z.object({
   name: z.string().min(1),
   email: z.email().min(1),
   password: z.string().min(8),
+  favoriteNumber: z.int(),
 });
 
 type SignUpForm = z.infer<typeof signUpSchema>;
@@ -45,17 +47,24 @@ export function SignUpTab({
       name: "",
       email: "",
       password: "",
+      favoriteNumber: 0,
     },
   });
 
   const { isSubmitting } = form.formState;
 
-  const handleSignUp = async ({ email, name, password }: SignUpForm) => {
+  const handleSignUp = async ({
+    email,
+    name,
+    password,
+    favoriteNumber,
+  }: SignUpForm) => {
     const res = await authClient.signUp.email(
       {
         email,
         name,
         password,
+        favoriteNumber,
         callbackURL: "/",
       },
       {
@@ -125,6 +134,19 @@ export function SignUpTab({
                   </FormControl>
                 </InputGroupAddon>
               </InputGroup>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={"favoriteNumber"}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Favorite Number</FormLabel>
+              <FormControl>
+                <NumberInput {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

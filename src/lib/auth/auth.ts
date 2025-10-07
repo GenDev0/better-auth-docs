@@ -8,6 +8,14 @@ import { createAuthMiddleware } from "better-auth/api";
 import { sendWelcomeEmail } from "../email/welcome-email";
 
 export const auth = betterAuth({
+  user: {
+    additionalFields: {
+      favoriteNumber: {
+        type: "number",
+        required: true,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -26,10 +34,16 @@ export const auth = betterAuth({
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      mapProfileToUser: (profile) => ({
+        favoriteNumber: Number(profile.public_repos) || 0,
+      }),
     },
     discord: {
       clientId: process.env.DISCORD_CLIENT_ID as string,
       clientSecret: process.env.DISCORD_CLIENT_SECRET as string,
+      mapProfileToUser: (profile) => ({
+        favoriteNumber: Number(profile.public_flags) || 0,
+      }),
     },
   },
   session: {
