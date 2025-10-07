@@ -1,4 +1,3 @@
-import { session } from "./../../../../drizzle/schemas/auth-schema";
 import { auth } from "@/lib/auth/auth"; // path to your auth file
 import { toNextJsHandler } from "better-auth/next-js";
 import arcjet, {
@@ -9,9 +8,7 @@ import arcjet, {
   shield,
   slidingWindow,
   SlidingWindowRateLimitOptions,
-  tokenBucket,
 } from "@arcjet/next";
-import { isSpoofedBot } from "@arcjet/inspect";
 import { findIp } from "@arcjet/ip";
 
 const authHandlers = toNextJsHandler(auth);
@@ -48,6 +45,41 @@ const emailSettings = {
   mode: "LIVE",
   deny: ["DISPOSABLE", "INVALID", "NO_MX_RECORDS"],
 } satisfies EmailOptions;
+
+async function checkArcjet(request: Request) {
+  const body = (await request.json()) as unknown;
+  const session = await auth.api.getSession({ headers: request.headers });
+  const userIdOrIp = (session?.user.id ?? findIp(request)) || "127.0.0.1";
+
+  if (request.url.endsWith("/auth/sign-up")) {
+    if (
+      body &&
+      typeof body === "object" &&
+      "email" in body &&
+      typeof body.email === "string"
+    ) {
+      return aj
+        .withRule(
+          protectSignup({
+            email: emailSettings,
+            bots: botsSettings,
+            rateLimit: restrictiveRateLimitSettings,
+          })
+        )
+        .protect(request, { email: body.email, userIdOrIp });
+    } else {
+      return aj
+        .withRule(detectBot(botsSettings))
+        .withRule(slidingWindow(restrictiveRateLimitSettings))
+        .protect(request, { userIdOrIp });
+    }
+  } else {
+    return aj
+      .withRule(detectBot(botsSettings))
+      .withRule(slidingWindow(laxRateLimitSettings))
+      .protect(request, { userIdOrIp });
+  }
+}
 
 export async function POST(request: Request) {
   const clonedRequest = request.clone();
@@ -88,39 +120,4 @@ export async function POST(request: Request) {
   }
 
   return authHandlers.POST(clonedRequest);
-}
-
-async function checkArcjet(request: Request) {
-  const body = (await request.json()) as unknown;
-  const session = await auth.api.getSession({ headers: request.headers });
-  const userIdOrIp = (session?.user.id ?? findIp(request)) || "127.0.0.1";
-
-  if (request.url.endsWith("/auth/sign-up")) {
-    if (
-      body &&
-      typeof body === "object" &&
-      "email" in body &&
-      typeof body.email === "string"
-    ) {
-      return aj
-        .withRule(
-          protectSignup({
-            email: emailSettings,
-            bots: botsSettings,
-            rateLimit: restrictiveRateLimitSettings,
-          })
-        )
-        .protect(request, { email: body.email, userIdOrIp });
-    } else {
-      return aj
-        .withRule(detectBot(botsSettings))
-        .withRule(slidingWindow(restrictiveRateLimitSettings))
-        .protect(request, { userIdOrIp });
-    }
-  } else {
-    return aj
-      .withRule(detectBot(botsSettings))
-      .withRule(slidingWindow(laxRateLimitSettings))
-      .protect(request, { userIdOrIp });
-  }
 }

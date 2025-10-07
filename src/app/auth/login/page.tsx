@@ -37,7 +37,6 @@ export default function LoginPage() {
   }, [router]);
 
   function openEmailVerificationTab(email: string) {
-    console.log("🚀 ~ openEmailVerificationTab ~ email:", email);
     setEmail(email);
     setSelectedTab("email-verification");
   }

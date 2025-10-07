@@ -138,7 +138,7 @@ export function SignInTab({
           )}
         />
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          <LoadingSwap isLoading={isSubmitting}>Send Email</LoadingSwap>
+          <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
         </Button>
       </form>
     </Form>

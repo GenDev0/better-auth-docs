@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 const signUpSchema = z.object({
   name: z.string().min(1),
@@ -40,7 +39,6 @@ export function SignUpTab({
   openEmailVerificationTab: (email: string) => void;
 }) {
   const [isHidden, setIsHidden] = useState(true);
-  const router = useRouter();
   const form = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
