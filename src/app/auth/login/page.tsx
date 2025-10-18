@@ -28,6 +28,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [selectedTab, setSelectedTab] = useState<Tab>("signin");
   const router = useRouter();
+
+  // Protected Route client side
   useEffect(() => {
     authClient.getSession().then((session) => {
       if (session.data != null) {
