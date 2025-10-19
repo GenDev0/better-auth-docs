@@ -26,6 +26,7 @@ import { authClient } from "@/lib/auth/auth-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingSwap } from "@/components/ui/loading-swap";
+import { PasskeyButton } from "./passkey-button";
 
 const signInSchema = z.object({
   email: z.email().min(1),
@@ -76,71 +77,77 @@ export function SignInTab({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSignIn)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name={"email"}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name={"password"}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              {/* <Input type="password" {...field} /> */}
-              <div className="flex flex-col justify-center items-center w-full gap-2">
-                <div className="flex justify-center items-center w-full">
-                  <InputGroup>
-                    <InputGroupInput
-                      type={isHidden ? "password" : "text"}
-                      {...field}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <FormControl>
-                        <InputGroupButton
-                          aria-label="Copy"
-                          title="Copy"
-                          size="icon-xs"
-                          onClick={() => {
-                            setIsHidden((prevState) => !prevState);
-                          }}
-                        >
-                          {isHidden ? <EyeClosed /> : <Eye />}
-                        </InputGroupButton>
-                      </FormControl>
-                    </InputGroupAddon>
-                  </InputGroup>
+    <div className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSignIn)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name={"email"}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email webauthn"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={"password"}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                {/* <Input type="password" {...field} /> */}
+                <div className="flex flex-col justify-center items-center w-full gap-2">
+                  <div className="flex justify-center items-center w-full">
+                    <InputGroup>
+                      <InputGroupInput
+                        autoComplete="current-password webauthn"
+                        type={isHidden ? "password" : "text"}
+                        {...field}
+                      />
+                      <InputGroupAddon align="inline-end">
+                        <FormControl>
+                          <InputGroupButton
+                            size="icon-xs"
+                            onClick={() => {
+                              setIsHidden((prevState) => !prevState);
+                            }}
+                          >
+                            {isHidden ? <EyeClosed /> : <Eye />}
+                          </InputGroupButton>
+                        </FormControl>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </div>
+                  <div className="flex justify-end items-center w-full">
+                    <Button
+                      onClick={openForgotPasswordTab}
+                      type="button"
+                      variant={"link"}
+                      size={"sm"}
+                      className="text-sm font-normal underline hover:cursor-pointer"
+                    >
+                      Forgot password?
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex justify-end items-center w-full">
-                  <Button
-                    onClick={openForgotPasswordTab}
-                    type="button"
-                    variant={"link"}
-                    size={"sm"}
-                    className="text-sm font-normal underline hover:cursor-pointer"
-                  >
-                    Forgot password?
-                  </Button>
-                </div>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isSubmitting} className="w-full">
-          <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
-        </Button>
-      </form>
-    </Form>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            <LoadingSwap isLoading={isSubmitting}>Sign In</LoadingSwap>
+          </Button>
+        </form>
+      </Form>
+      <PasskeyButton />
+    </div>
   );
 }

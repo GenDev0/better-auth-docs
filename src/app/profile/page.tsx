@@ -28,6 +28,8 @@ import { SetPasswordButton } from "./_components/set-password-button";
 import { SessionManagement } from "./_components/session-management";
 import { AccountLinking } from "./_components/account-linking";
 import { AccountDeletion } from "./_components/account-deletion";
+import { TwoFactorAuth } from "./_components/two-factor-auth";
+import { PasskeyManagement } from "./_components/passkey-management";
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -102,7 +104,6 @@ export default async function ProfilePage() {
           <LoadingSuspense>
             <SecurityTab
               email={session.user.email}
-              // @ts-expect-error this is not implemented yet
               isTwoFactorEnabled={session.user.twoFactorEnabled ?? false}
             />
           </LoadingSuspense>
@@ -178,13 +179,11 @@ async function SecurityTab({
   email: string;
   isTwoFactorEnabled: boolean;
 }) {
-  // const [passkeys, accounts] = await Promise.all([
-  //   auth.api.listPasskeys({ headers: await headers() }),
-  //   auth.api.listUserAccounts({ headers: await headers() }),
-  // ])
-  const accounts = await auth.api.listUserAccounts({
-    headers: await headers(),
-  });
+  const [passkeys, accounts] = await Promise.all([
+    auth.api.listPasskeys({ headers: await headers() }),
+    auth.api.listUserAccounts({ headers: await headers() }),
+  ]);
+
   const hasPasswordAccount = accounts.some(
     (a) => a.providerId === "credential"
   );
@@ -192,17 +191,32 @@ async function SecurityTab({
   return (
     <div className="space-y-6">
       {hasPasswordAccount ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>
-              Update your password for improved security.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChangePasswordForm />
-          </CardContent>
-        </Card>
+        <>
+          {/* Update Password Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+              <CardDescription>
+                Update your password for improved security.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChangePasswordForm />
+            </CardContent>
+          </Card>
+          {/* 2FA */}
+          <Card>
+            <CardHeader className="flex items-center justify-between gap-2">
+              <CardTitle>Two-Factor Authentication</CardTitle>
+              <Badge variant={isTwoFactorEnabled ? "default" : "secondary"}>
+                {isTwoFactorEnabled ? "Enabled" : "Disabled"}
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <TwoFactorAuth isEnabled={isTwoFactorEnabled} />
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <Card>
           <CardHeader>
@@ -216,28 +230,13 @@ async function SecurityTab({
           </CardContent>
         </Card>
       )}
-      {hasPasswordAccount && (
-        <Card>
-          <CardHeader className="flex items-center justify-between gap-2">
-            <CardTitle>Two-Factor Authentication</CardTitle>
-            <Badge variant={isTwoFactorEnabled ? "default" : "secondary"}>
-              {isTwoFactorEnabled ? "Enabled" : "Disabled"}
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            {/* <TwoFactorAuth isEnabled={isTwoFactorEnabled} /> */}
-            TwoFactorAuth
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
           <CardTitle>Passkeys</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* <PasskeyManagement passkeys={passkeys} /> */}
-          PasskeyManagement
+          <PasskeyManagement passkeys={passkeys} />
         </CardContent>
       </Card>
     </div>

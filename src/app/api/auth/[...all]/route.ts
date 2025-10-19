@@ -47,7 +47,11 @@ const emailSettings = {
 } satisfies EmailOptions;
 
 async function checkArcjet(request: Request) {
-  const body = (await request.json()) as unknown;
+  const shouldParseBody = !request.url.includes("/auth/passkey");
+  const body = shouldParseBody
+    ? ((await request.json()) as unknown)
+    : ({} as Record<string, unknown>);
+
   const session = await auth.api.getSession({ headers: request.headers });
   const userIdOrIp = (session?.user.id ?? findIp(request)) || "127.0.0.1";
 
@@ -121,3 +125,16 @@ export async function POST(request: Request) {
 
   return authHandlers.POST(clonedRequest);
 }
+
+// Future use
+// async function safeJson<T extends Record<string, unknown>>(request: Request): Promise<T> {
+//   try {
+//     const contentLength = request.headers.get("content-length");
+//     if (contentLength && parseInt(contentLength) > 0) {
+//       return (await request.json()) as T;
+//     }
+//   } catch {
+//     // Ignore invalid JSON or empty body
+//   }
+//   return {} as T;
+// }
