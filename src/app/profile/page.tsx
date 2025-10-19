@@ -8,12 +8,24 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { auth } from "@/lib/auth/auth";
-import { ArrowLeft, Key, LinkIcon, Shield, Trash2, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Key,
+  LinkIcon,
+  Loader2Icon,
+  Shield,
+  Trash2,
+  User,
+} from "lucide-react";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProfileUpdateForm } from "./_components/profile-update-form";
+import { ReactNode, Suspense } from "react";
+import { ChangePasswordForm } from "./_components/change-password-form";
+import { SetPasswordButton } from "./_components/set-password-button";
+import { SessionManagement } from "./_components/session-management";
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -84,20 +96,21 @@ export default async function ProfilePage() {
           </Card>
         </TabsContent>
 
-        {/* <TabsContent value="security">
+        <TabsContent value="security">
           <LoadingSuspense>
             <SecurityTab
               email={session.user.email}
+              // @ts-expect-error this is not implemented yet
               isTwoFactorEnabled={session.user.twoFactorEnabled ?? false}
             />
           </LoadingSuspense>
-        </TabsContent> */}
+        </TabsContent>
 
-        {/* <TabsContent value="sessions">
+        <TabsContent value="sessions">
           <LoadingSuspense>
             <SessionsTab currentSessionToken={session.session.token} />
           </LoadingSuspense>
-        </TabsContent> */}
+        </TabsContent>
 
         {/* <TabsContent value="accounts">
           <LoadingSuspense>
@@ -135,96 +148,102 @@ export default async function ProfilePage() {
 //   )
 // }
 
-// async function SessionsTab({
-//   currentSessionToken,
-// }: {
-//   currentSessionToken: string
-// }) {
-//   const sessions = await auth.api.listSessions({ headers: await headers() })
+async function SessionsTab({
+  currentSessionToken,
+}: {
+  currentSessionToken: string;
+}) {
+  const sessions = await auth.api.listSessions({ headers: await headers() });
 
-//   return (
-//     <Card>
-//       <CardContent>
-//         <SessionManagement
-//           sessions={sessions}
-//           currentSessionToken={currentSessionToken}
-//         />
-//       </CardContent>
-//     </Card>
-//   )
-// }
+  return (
+    <Card>
+      <CardContent>
+        <SessionManagement
+          sessions={sessions}
+          currentSessionToken={currentSessionToken}
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
-// async function SecurityTab({
-//   email,
-//   isTwoFactorEnabled,
-// }: {
-//   email: string
-//   isTwoFactorEnabled: boolean
-// }) {
-//   const [passkeys, accounts] = await Promise.all([
-//     auth.api.listPasskeys({ headers: await headers() }),
-//     auth.api.listUserAccounts({ headers: await headers() }),
-//   ])
+async function SecurityTab({
+  email,
+  isTwoFactorEnabled,
+}: {
+  email: string;
+  isTwoFactorEnabled: boolean;
+}) {
+  // const [passkeys, accounts] = await Promise.all([
+  //   auth.api.listPasskeys({ headers: await headers() }),
+  //   auth.api.listUserAccounts({ headers: await headers() }),
+  // ])
+  const accounts = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+  const hasPasswordAccount = accounts.some(
+    (a) => a.providerId === "credential"
+  );
 
-//   const hasPasswordAccount = accounts.some(a => a.providerId === "credential")
+  return (
+    <div className="space-y-6">
+      {hasPasswordAccount ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Change Password</CardTitle>
+            <CardDescription>
+              Update your password for improved security.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChangePasswordForm />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Set Password</CardTitle>
+            <CardDescription>
+              We will send you a password reset email to set up a password.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SetPasswordButton email={email} />
+          </CardContent>
+        </Card>
+      )}
+      {hasPasswordAccount && (
+        <Card>
+          <CardHeader className="flex items-center justify-between gap-2">
+            <CardTitle>Two-Factor Authentication</CardTitle>
+            <Badge variant={isTwoFactorEnabled ? "default" : "secondary"}>
+              {isTwoFactorEnabled ? "Enabled" : "Disabled"}
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            {/* <TwoFactorAuth isEnabled={isTwoFactorEnabled} /> */}
+            TwoFactorAuth
+          </CardContent>
+        </Card>
+      )}
 
-//   return (
-//     <div className="space-y-6">
-//       {hasPasswordAccount ? (
-//         <Card>
-//           <CardHeader>
-//             <CardTitle>Change Password</CardTitle>
-//             <CardDescription>
-//               Update your password for improved security.
-//             </CardDescription>
-//           </CardHeader>
-//           <CardContent>
-//             <ChangePasswordForm />
-//           </CardContent>
-//         </Card>
-//       ) : (
-//         <Card>
-//           <CardHeader>
-//             <CardTitle>Set Password</CardTitle>
-//             <CardDescription>
-//               We will send you a password reset email to set up a password.
-//             </CardDescription>
-//           </CardHeader>
-//           <CardContent>
-//             <SetPasswordButton email={email} />
-//           </CardContent>
-//         </Card>
-//       )}
-//       {hasPasswordAccount && (
-//         <Card>
-//           <CardHeader className="flex items-center justify-between gap-2">
-//             <CardTitle>Two-Factor Authentication</CardTitle>
-//             <Badge variant={isTwoFactorEnabled ? "default" : "secondary"}>
-//               {isTwoFactorEnabled ? "Enabled" : "Disabled"}
-//             </Badge>
-//           </CardHeader>
-//           <CardContent>
-//             <TwoFactorAuth isEnabled={isTwoFactorEnabled} />
-//           </CardContent>
-//         </Card>
-//       )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Passkeys</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* <PasskeyManagement passkeys={passkeys} /> */}
+          PasskeyManagement
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>Passkeys</CardTitle>
-//         </CardHeader>
-//         <CardContent>
-//           <PasskeyManagement passkeys={passkeys} />
-//         </CardContent>
-//       </Card>
-//     </div>
-//   )
-// }
-
-// function LoadingSuspense({ children }: { children: ReactNode }) {
-//   return (
-//     <Suspense fallback={<Loader2Icon className="size-20 animate-spin" />}>
-//       {children}
-//     </Suspense>
-//   )
-// }
+function LoadingSuspense({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<Loader2Icon className="size-20 animate-spin" />}>
+      {children}
+    </Suspense>
+  );
+}
