@@ -1,11 +1,12 @@
 import { db } from "@/drizzle/db";
-import { betterAuth, email } from "better-auth";
+import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { sendResetPasswordEmail } from "../email/send-reset-password-email";
 import { sendVerificationEmail } from "../email/send-verification-email";
 import { createAuthMiddleware } from "better-auth/api";
 import { sendWelcomeEmail } from "../email/welcome-email";
+import { sendDeleteAccountVerificationEmail } from "../email/delete-account-verification";
 
 export const auth = betterAuth({
   user: {
@@ -22,6 +23,12 @@ export const auth = betterAuth({
       favoriteNumber: {
         type: "number",
         required: true,
+      },
+    },
+    deleteUser: {
+      enabled: true,
+      sendDeleteAccountVerification: async ({ user, url }) => {
+        await sendDeleteAccountVerificationEmail({ user, url });
       },
     },
   },
