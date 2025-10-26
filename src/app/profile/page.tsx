@@ -56,7 +56,7 @@ export default async function ProfilePage() {
               <User className="size-8 text-muted-foreground" />
             )}
           </div>
-          {/* <div className="flex-1">
+          <div className="flex-1">
             <div className="flex gap-1 justify-between items-start">
               <h1 className="text-3xl font-bold">
                 {session.user.name || "User Profile"}
@@ -64,7 +64,7 @@ export default async function ProfilePage() {
               <Badge>{session.user.role}</Badge>
             </div>
             <p className="text-muted-foreground">{session.user.email}</p>
-          </div> */}
+          </div>
         </div>
       </div>
 

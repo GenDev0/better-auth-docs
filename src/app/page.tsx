@@ -6,9 +6,24 @@ import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth/auth-client";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { data: session, isPending } = authClient.useSession();
+  const [hasAdminPermission, setHasAdminPermission] = useState(false);
+  console.log("🚀 ~ Home ~ hasAdminPermission:", hasAdminPermission);
+
+  useEffect(() => {
+    authClient.admin
+      .hasPermission({
+        permission: {
+          user: ["list"],
+        },
+      })
+      .then(({ data }) => {
+        setHasAdminPermission(data?.success ?? false);
+      });
+  }, []);
 
   if (isPending) {
     return (
@@ -37,6 +52,11 @@ export default function Home() {
               <Button asChild size={"lg"}>
                 <Link href={"/profile"}>Profile</Link>
               </Button>
+              {hasAdminPermission && (
+                <Button asChild size={"lg"} variant={"outline"}>
+                  <Link href={"/admin"}>Admin</Link>
+                </Button>
+              )}
               <BetterAuthActionButton
                 size={"lg"}
                 variant={"destructive"}
